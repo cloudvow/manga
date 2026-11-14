@@ -1,0 +1,734 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Manga Shelf</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#f6f6f8;--fg:#15151a;--mut:#6b6b76;--card:#fff;--acc:#e5484d;--line:#dcdce2;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0e0e12;--fg:#f1f1f4;--mut:#9a9aa6;--card:#1a1a21;--line:#2c2c36}}
+:root[data-theme="dark"]{--bg:#0e0e12;--fg:#f1f1f4;--mut:#9a9aa6;--card:#1a1a21;--line:#2c2c36}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.4 system-ui,-apple-system,"Segoe UI",sans-serif}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);background:var(--bg);z-index:10}
+header{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;display:flex;gap:8px;align-items:center;padding:10px 14px;background:var(--bg);border-bottom:1px solid var(--line)}
+header h1{font-size:19px;margin:0;flex:1;cursor:pointer}
+header h1 b{color:var(--acc)}
+button,input,select,textarea{font:inherit;color:inherit}
+.btn{background:var(--acc);color:#fff;border:0;border-radius:10px;padding:9px 14px;font-weight:600}
+.btn.alt{background:var(--card);color:var(--fg);border:1px solid var(--line)}
+.btn.del{background:#b3261e}
+.btn:disabled{opacity:.5}
+.ib{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:8px 12px}
+main{padding:14px;max-width:900px;margin:auto}
+input[type=text],input[type=search],input[type=number],textarea{width:100%;padding:10px 12px;border-radius:10px;border:1px solid var(--line);background:var(--card)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(125px,1fr));gap:12px}
+.rowx{display:flex;gap:12px;overflow-x:auto;padding-bottom:6px;scroll-snap-type:x proximity}
+.rowx .card{flex:none;width:118px;scroll-snap-align:start}
+.card{cursor:pointer}
+.cv{aspect-ratio:2/3;border-radius:10px;background:var(--line);overflow:hidden}
+.cv img{width:100%;height:100%;object-fit:cover;display:block}
+.card p{margin:6px 2px 0;font-size:14px;font-weight:600;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.card small{color:var(--mut);display:block;margin-left:2px;font-size:12px}
+.sh{display:flex;justify-content:space-between;align-items:baseline;margin:22px 0 8px}
+.sh h3{margin:0}.sh a{color:var(--acc);font-size:14px;cursor:pointer}
+.news{display:flex;gap:10px;overflow-x:auto;scroll-snap-type:x mandatory;margin:12px 0}
+.nc{flex:none;width:86%;max-width:420px;min-height:130px;scroll-snap-align:start;border-radius:14px;padding:14px;background:linear-gradient(135deg,var(--acc),#7a2cff);color:#fff;position:relative;overflow:hidden;display:flex;flex-direction:column;justify-content:flex-end;gap:2px;cursor:pointer}
+.nc img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.45}
+.nc *{position:relative}
+.nc span{font-size:13px;opacity:.9}
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin:6px 0}
+.chip{padding:5px 11px;border-radius:20px;border:1px solid var(--line);background:var(--card);font-size:13px;cursor:pointer}
+.chip.on{background:var(--acc);border-color:var(--acc);color:#fff}
+.hero{display:flex;gap:14px;margin-bottom:10px}
+.hero .cv{width:120px;flex:none}
+.hero h2{margin:0 0 4px}
+.muted{color:var(--mut)}
+.row{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}
+.ch{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:13px 12px;background:var(--card);border:1px solid var(--line);border-radius:10px;margin-bottom:8px;cursor:pointer}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:50;display:flex;align-items:flex-end;justify-content:center}
+.sheet{background:var(--bg);width:100%;max-width:520px;border-radius:18px 18px 0 0;padding:18px 16px calc(18px + env(safe-area-inset-bottom,0px));max-height:92%;overflow:auto}
+.sheet label{display:block;margin:12px 0 4px;font-size:14px;color:var(--mut)}
+.peek{display:flex;gap:6px;overflow-x:auto;margin:10px 0}
+.peek img{height:150px;border-radius:6px;flex:none}
+.empty{text-align:center;color:var(--mut);padding:40px 10px}
+.drawer{position:fixed;top:0;bottom:0;left:0;width:78%;max-width:300px;background:var(--bg);z-index:60;padding:calc(16px + env(safe-area-inset-top,0px)) 14px 20px;overflow:auto;border-right:1px solid var(--line)}
+.drawer .it{padding:12px 8px;border-radius:8px;cursor:pointer}
+.drawer .it:active{background:var(--card)}
+.drawer h4{margin:16px 8px 4px;color:var(--mut);font-size:12px;text-transform:uppercase}
+.av{border-radius:50%;background:var(--acc);color:#fff;display:inline-flex;align-items:center;justify-content:center;font-weight:700;overflow:hidden;flex:none}
+.av img{width:100%;height:100%;object-fit:cover}
+.by{display:flex;align-items:center;gap:6px;cursor:pointer;margin:4px 0}
+#rd{position:fixed;inset:0;background:#000;z-index:30;color:#fff;overflow:hidden}
+#rd .pg{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;overflow:auto}
+#rd .pg.rtl{flex-direction:row-reverse}
+#rd .pg img{max-width:100%;max-height:100%;object-fit:contain;display:block;flex:0 1 auto;min-width:0}
+#rd.fw .pg{align-items:flex-start}
+#rd.fw .pg img{max-height:none;width:100%}
+#rd.fw.dbl .pg img{width:50%}
+#rd .scr{position:absolute;inset:0;overflow:auto}
+#rd .scr img{width:100%;display:block;max-width:720px;margin:auto}
+#rd .tz{position:absolute;top:0;bottom:0;z-index:2}
+#rd .bar{position:absolute;left:0;right:0;z-index:5;display:flex;gap:8px;align-items:center;padding:10px 12px;background:rgba(0,0,0,.82);transition:transform .2s}
+#rd .top{top:0;padding-top:calc(10px + env(safe-area-inset-top,0px))}
+#rd .bot{bottom:0;padding-bottom:calc(10px + env(safe-area-inset-bottom,0px));justify-content:center}
+#rd.hide .top{transform:translateY(-110%)}
+#rd.hide .bot{transform:translateY(110%)}
+#rd .bar button{background:#2a2a30;color:#fff;border:0;border-radius:8px;padding:8px 12px}
+#rd .ttl{flex:1;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.seg{display:flex;gap:6px;flex-wrap:wrap}
+.seg button{flex:1;padding:9px;border-radius:9px;border:1px solid var(--line);background:var(--card)}
+.seg button.on{background:var(--acc);color:#fff;border-color:var(--acc)}
+.toast{position:fixed;left:50%;bottom:90px;transform:translateX(-50%);background:#222;color:#fff;padding:9px 16px;border-radius:20px;z-index:99;max-width:90%}
+.pc{position:relative;overflow:hidden;border-radius:26px;padding:3px;box-shadow:0 0 22px rgba(139,92,246,.4),0 0 44px rgba(236,72,153,.2)}
+.pc::before{content:"";position:absolute;inset:-60%;background:conic-gradient(#8b5cf6,#3b82f6,#ec4899,#8b5cf6);animation:spin 5s linear infinite,hue 9s linear infinite}
+.pc>.in{position:relative;background:var(--card);border-radius:23px;overflow:hidden}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes hue{to{filter:hue-rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){.pc::before{animation:none}}
+.pbn{height:110px;background:linear-gradient(120deg,var(--acc),#7a2cff);position:relative;overflow:hidden}
+.pbn img{width:100%;height:100%;object-fit:cover;display:block}
+.hint{position:absolute;right:10px;bottom:8px;background:rgba(0,0,0,.6);color:#fff;padding:3px 10px;border-radius:12px;font-size:12px;pointer-events:none}
+.pav{position:absolute;top:62px;left:16px;width:96px;height:96px;border-radius:50%;border:4px solid var(--card);background:var(--card)}
+.pav .hint{right:-4px;bottom:-4px;padding:4px 6px;font-size:13px}
+.pbody{padding:58px 16px 16px}
+.bds{display:flex;gap:6px;flex-wrap:wrap;margin:6px 0}
+.bd{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:16px;background:var(--bg);border:1px solid var(--line);font-size:12px}
+.bd.crown{border-color:#f5c542;color:#e0a512;background:rgba(245,197,66,.12);font-weight:700}
+.lbl{font-size:11px;font-weight:700;letter-spacing:.06em;color:var(--mut);margin:14px 0 4px}
+.since{margin-top:14px;padding-top:12px;border-top:1px solid var(--line)}
+.sw{width:38px;height:38px;border-radius:50%;border:3px solid transparent;cursor:pointer;outline:1px solid var(--line)}
+.sw.on{border-color:var(--fg)}
+.btn:not(.alt){color:var(--onacc,#fff)}.chip.on,.seg button.on,.av{color:var(--onacc,#fff)}.btn.del{color:#fff}
+.sc{position:relative}
+.sb{display:none;position:absolute;top:40%;z-index:3;width:36px;height:36px;border-radius:50%;border:1px solid var(--line);background:var(--card);cursor:pointer;font-size:20px;line-height:1;align-items:center;justify-content:center;opacity:.92}
+.sb.l{left:-8px}.sb.r{right:-8px}
+#rd .tz{cursor:pointer}
+@media (hover:hover){.sb{display:flex}.card .cv{transition:transform .15s,box-shadow .15s}.card:hover .cv{transform:translateY(-3px);box-shadow:0 8px 18px rgba(0,0,0,.28)}.ch:hover{border-color:var(--acc)}.btn:hover,.ib:hover{filter:brightness(1.1)}.chip:hover{border-color:var(--acc)}}
+@media (min-width:760px){main{max-width:1200px;padding:20px 28px}.modal{align-items:center}.sheet{border-radius:20px;max-width:580px;max-height:88%;padding-bottom:18px}.hero .cv{width:170px}.hero h2{font-size:28px}.grid{grid-template-columns:repeat(auto-fill,minmax(165px,1fr));gap:18px}.rowx .card{width:155px}.nc{width:420px;min-height:170px}header{padding:12px 28px}#rd .scr img{max-width:900px}.pc{max-width:540px;margin:0 auto}}
+body{font-family:"Inter",system-ui,-apple-system,"Segoe UI",sans-serif;line-height:1.5;-webkit-font-smoothing:antialiased;letter-spacing:-.003em}
+h1,h2,h3,h4,.btn,.chip,.bd,.lbl,.sh h3{font-family:"Outfit","Inter",system-ui,sans-serif}
+h2{letter-spacing:-.01em}
+.pc>.in{background:var(--solid,var(--card))}
+.pav{background:var(--solid,var(--card));border-color:var(--solid,var(--card))}
+.tip{position:fixed;z-index:80;max-width:270px;padding:12px 14px;border-radius:14px;background:var(--solid,var(--card));border:1px solid var(--line);box-shadow:0 10px 30px rgba(0,0,0,.35);pointer-events:none;font-size:13px}
+.tip b{display:block;font-size:15px;font-family:"Outfit",sans-serif}
+.gname{background:linear-gradient(90deg,var(--g1,var(--acc)),var(--g2,#ec4899));-webkit-background-clip:text;background-clip:text;color:transparent;-webkit-text-fill-color:transparent;font-weight:700;cursor:pointer}
+.by2{margin:1px 2px 0;font-size:12px}
+.pw{position:relative;padding:20px;max-width:580px;margin:0 auto}
+.dc{position:absolute;z-index:3;pointer-events:none;line-height:1;user-select:none;-webkit-user-select:none}
+.dc img{width:1em;height:1em;object-fit:contain;display:block}
+.dc.ed{pointer-events:auto;cursor:grab;touch-action:none;outline:1px dashed var(--acc);outline-offset:4px;border-radius:6px}
+.dc.sel{outline:2px solid var(--acc)}
+.da{display:block}
+.a-bounce{animation:dbounce 1s ease-in-out infinite}
+.a-jingle{animation:djingle 1.1s ease-in-out infinite;transform-origin:50% 0}
+.a-float{animation:dfloat 3s ease-in-out infinite}
+.a-spin{animation:spin 4s linear infinite}
+.a-pulse{animation:dpulse 1.4s ease-in-out infinite}
+@keyframes dbounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-12px)}}
+@keyframes djingle{0%,100%{transform:rotate(0)}15%{transform:rotate(16deg)}30%{transform:rotate(-14deg)}45%{transform:rotate(10deg)}60%{transform:rotate(-8deg)}75%{transform:rotate(0)}}
+@keyframes dfloat{0%,100%{transform:translate(0,0)}33%{transform:translate(6px,-8px)}66%{transform:translate(-6px,-3px)}}
+@keyframes dpulse{50%{transform:scale(1.25)}}
+@media (prefers-reduced-motion:reduce){.da{animation:none!important}}
+details{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin:6px 0}
+summary{cursor:pointer;font-weight:600}
+.msgs{display:flex;flex-direction:column;gap:6px;max-height:48vh;overflow:auto;padding:4px;margin:10px 0}
+.mb{max-width:82%;padding:8px 12px;border-radius:16px;background:var(--card);border:1px solid var(--line);white-space:pre-wrap;word-wrap:break-word}
+.mb.me{align-self:flex-end;background:var(--acc);color:var(--onacc,#fff);border-color:transparent}
+.urow{display:flex;align-items:center;gap:10px;padding:8px;border-radius:12px;cursor:pointer}
+.urow:hover{background:var(--card)}
+.dot{background:var(--acc);color:var(--onacc,#fff);border-radius:10px;font-size:11px;padding:1px 6px;font-weight:700}
+.ibw{position:relative;display:flex}.ibw .dot{position:absolute;top:-6px;right:-6px}
+.lib{display:grid;grid-template-columns:repeat(auto-fill,minmax(70px,1fr));gap:8px;margin:6px 0}
+.lt{background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:10px;display:flex;align-items:center;justify-content:center;aspect-ratio:1;cursor:pointer}
+.lt:hover,.bt:hover{border-color:var(--acc)}
+.bt{display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 6px;border:1px solid var(--line);border-radius:12px;background:var(--bg);cursor:pointer;text-align:center;font-size:12px}
+.bt svg{width:40px;height:40px}
+.bd{cursor:pointer}.bd svg{width:18px;height:18px;display:block}
+.bdbig svg{width:96px;height:96px}
+.lock{filter:grayscale(1);opacity:.45}
+.sway{transform-box:fill-box;transform-origin:50% 0;animation:djingle 2.2s ease-in-out infinite}
+.bobv{animation:bobu 1.6s ease-in-out infinite}
+.jawT,.jawB{transform-box:fill-box}
+.jawT{animation:chompT .9s ease-in-out infinite}
+.jawB{animation:chompB .9s ease-in-out infinite}
+.tw{transform-box:fill-box;transform-origin:center;animation:twk 1.6s ease-in-out infinite}
+.bl{animation:blink 1.4s ease-in-out infinite}
+@keyframes bobu{0%,100%{transform:translateY(0)}50%{transform:translateY(-1.6px)}}
+@keyframes chompT{0%,100%{transform:translateY(-3px)}50%{transform:translateY(2px)}}
+@keyframes chompB{0%,100%{transform:translateY(3px)}50%{transform:translateY(-2px)}}
+@keyframes twk{0%,100%{opacity:.25;transform:scale(.6)}50%{opacity:1;transform:scale(1.15)}}
+@keyframes blink{0%,100%{opacity:.35}50%{opacity:1}}
+@media (prefers-reduced-motion:reduce){.sway,.bobv,.jawT,.jawB,.tw,.bl{animation:none!important}}
+button,.card,.chip,.ch,.urow,.bd,.it,.sw,.nc,.lt,.bt,.tz,.sh a,.gname{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+@media (hover:none){.pc::before{animation:spin 6s linear infinite}.pc{box-shadow:none}}
+</style></head>
+<body>
+<div id="app"></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+(function(){
+var $app=document.getElementById("app"),db=null,assets=null,uid=null,isAdmin=false;
+var SUPABASE_URL="https://qvqmbiimuegtcrrsbobn.supabase.co",SUPABASE_KEY="sb_publishable__8kJsDeytd9WYpVxP7nWCA_0dtc6HRz",OWNER_UID="71835d43-7101-497f-b503-370bd0b9454e",sb=null;
+var S={series:[],chapters:[],news:[],reads:[],profiles:{},mine:[],dmIn:[],dmOut:[],dms:[],support:[],loaded:false,q:"",genre:""};
+var GENRES=["Action","Adventure","Comedy","Drama","Fantasy","Horror","Mystery","Romance","Sci-Fi","Slice of Life","Sports","Other"];
+var cfg={mode:"single",dir:"rtl",swap:false,fit:"page",cover:true};
+try{var c0=JSON.parse(localStorage.getItem("ms-cfg")||"null");if(c0)Object.assign(cfg,c0)}catch(e){}
+function save(){try{localStorage.setItem("ms-cfg",JSON.stringify(cfg))}catch(e){}}
+function add(e,a){if(a==null||a===false)return;if(Array.isArray(a))a.forEach(function(x){add(e,x)});else e.appendChild(typeof a==="object"?a:document.createTextNode(String(a)))}
+function h(t,p){var e=document.createElement(t);p=p||{};for(var k in p){if(k==="class")e.className=p[k];else if(k.slice(0,2)==="on")e.addEventListener(k.slice(2),p[k]);else if(k==="text")e.textContent=p[k];else e.setAttribute(k,p[k])}
+for(var i=2;i<arguments.length;i++)add(e,arguments[i]);return e}
+function scrollable(el){function by(d){el.scrollBy({left:d*el.clientWidth*0.8,behavior:"smooth"})}return h("div",{class:"sc"},el,h("button",{class:"sb l","aria-label":"Scroll left",onclick:function(){by(-1)}},"‹"),h("button",{class:"sb r","aria-label":"Scroll right",onclick:function(){by(1)}},"›"))}
+function uidn(){return Math.random().toString(36).slice(2,10)}
+function blob(id){if(!id)return "";if(/^https?:\/\//i.test(id)||/^data:/i.test(id)||/^blob:/i.test(id))return id;return sb?sb.storage.from("manga-assets").getPublicUrl(String(id)).data.publicUrl:""}
+function toast(m){var t=h("div",{class:"toast",text:m});document.body.appendChild(t);setTimeout(function(){t.remove()},2200)}
+function ago(t){var m=Math.floor((Date.now()-(t||0))/60000);if(m<1)return "just now";if(m<60)return m+"m ago";if(m<1440)return Math.floor(m/60)+"h ago";return Math.floor(m/1440)+"d ago"}
+function chOf(sid){return S.chapters.filter(function(c){return c.sid===sid}).sort(function(a,b){return a.n-b.n})}
+function nat(a,b){return a.name.localeCompare(b.name,undefined,{numeric:true})}
+function ser(id){return S.series.filter(function(s){return s.id===id})[0]}
+function readers(sid){return S.reads.filter(function(r){return r.sid===sid}).length}
+function can(x){return !!uid&&(isAdmin||x.by===uid)}
+function put(path,o){var d=Object.assign({},o);delete d.id;return db.doc(path).set(d)}
+function pname(id){var p=S.profiles[id];return (p&&p.name)||"Anonymous"}
+function mineGet(k){return S.mine.filter(function(x){return x.id===k})[0]}
+function isFav(sid){return !!mineGet("f-"+sid)}
+function myput(k,o){if(!db||!uid)return Promise.resolve();return db.collection("data/users/"+uid).doc(k).set(o)}
+function toggleFav(s){var k="f-"+s.id;if(isFav(s.id))db.collection("data/users/"+uid).doc(k).delete().catch(function(){});else myput(k,{sid:s.id,t:Date.now()})}
+function snap(rows){return {docs:(rows||[]).map(function(r){var d=Object.assign({},r.data||{});d.id=r.id;if(r.sender!==undefined){d.from=r.sender;d.to=r.recipient;d.t=d.t||new Date(r.created_at||Date.now()).getTime()}return {id:r.id,data:function(){return d}}})}}
+function doc(path){var a=path.split("/"),table=a[0],id=a[1];return {set:function(v){var d=Object.assign({},v);delete d.id;if(table==="dms"){var from=d.from,to=d.to,t=d.t;delete d.from;delete d.to;return sb.from(table).upsert({id:id,sender:from,recipient:to,data:d,created_at:new Date(t||Date.now()).toISOString()})}return sb.from(table).upsert({id:id,data:d,updated_at:new Date().toISOString()})},delete:function(){return sb.from(table).delete().eq("id",id)},get:function(){return sb.from(table).select("*").eq("id",id).maybeSingle().then(function(r){if(r.error)throw r.error;return {exists:!!r.data,data:function(){return r.data?Object.assign({},r.data.data||{},{id:r.data.id}):null}}})}}}
+function subscribeTable(table,cb,err,filter){var live=true;function load(){var q=sb.from(table).select("*");if(filter)q=q.eq(filter[0],filter[1]);q.then(function(r){if(r.error)throw r.error;if(live)cb(snap(r.data||[]))}).catch(function(e){if(err)err(e)})}load();var ch=sb.channel("ms-"+table+"-"+Math.random()).on("postgres_changes",{event:"*",schema:"public",table:table},load).subscribe();return {unsubscribe:function(){live=false;sb.removeChannel(ch)}}}
+function collection(name){if(name.indexOf("data/users/")===0){var who=name.split("/")[2];return {doc:function(k){return {set:function(d){return sb.from("user_data").upsert({uid:who,k:k,data:d,updated_at:new Date().toISOString()},{onConflict:"uid,k"})},delete:function(){return sb.from("user_data").delete().eq("uid",who).eq("k",k)}}},onSnapshot:function(cb,err){var live=true;function load(){sb.from("user_data").select("k,data").eq("uid",who).then(function(r){if(r.error)throw r.error;if(live)cb({docs:(r.data||[]).map(function(x){return {id:x.k,data:function(){return x.data||{}}}})})}).catch(function(e){if(err)err(e)})}load();var ch=sb.channel("ms-user-"+who).on("postgres_changes",{event:"*",schema:"public",table:"user_data",filter:"uid=eq."+who},load).subscribe();return {unsubscribe:function(){live=false;sb.removeChannel(ch)}}}}}
+return {doc:function(id){return doc(name+"/"+id)},onSnapshot:function(cb,err){return subscribeTable(name,cb,err)},where:function(field,op,value){return {onSnapshot:function(cb,err){var col=field==="from"?"sender":field==="to"?"recipient":field;var live=true;function load(){var q=sb.from(name).select("*");if(op==="==")q=q.eq(col,value);q.then(function(r){if(r.error)throw r.error;if(live)cb(snap(r.data||[]))}).catch(function(e){if(err)err(e)})}load();var ch=sb.channel("ms-query-"+Math.random()).on("postgres_changes",{event:"*",schema:"public",table:name},load).subscribe();return {unsubscribe:function(){live=false;sb.removeChannel(ch)}}}}}}}
+function makeDb(){return {doc:doc,collection:collection}}
+function sub(table,fn){return subscribeTable(table,fn,function(e){console.warn("Supabase "+table,e)})}
+function makeAssets(){return {upload:function(file){var ext=(file.name||"image.jpg").split(".").pop().replace(/[^a-z0-9]/gi,"").slice(0,8)||"jpg",path=uid+"/"+Date.now()+"-"+uidn()+"."+ext;return sb.storage.from("manga-assets").upload(path,file,{cacheControl:"3600"}).then(function(r){if(r.error)throw r.error;return {id:r.data.path}})}}}
+function authDlg(){var em=h("input",{type:"email",placeholder:"Email address"}),pw=h("input",{type:"password",placeholder:"Password"}),msg=h("p",{class:"muted"}),mode="in",m,goBtn=h("button",{class:"btn",text:"Sign in"}),swap=h("button",{class:"btn alt",text:"Create account"});function set(v){mode=v;goBtn.textContent=v==="in"?"Sign in":"Create account";swap.textContent=v==="in"?"Create account":"Back to sign in"}goBtn.onclick=function(){if(!em.value.trim()||!pw.value)return msg.textContent="Enter your email and password.";goBtn.disabled=true;var task=mode==="in"?sb.auth.signInWithPassword({email:em.value.trim(),password:pw.value}):sb.auth.signUp({email:em.value.trim(),password:pw.value});task.then(function(r){if(r.error)throw r.error;msg.textContent=mode==="up"&&!r.data.session?"Check your email to confirm your account.":"Signed in!";if(r.data.session)m.remove()}).catch(function(e){msg.textContent=e.message||"Authentication failed."}).finally(function(){goBtn.disabled=false})};swap.onclick=function(){set(mode==="in"?"up":"in")};m=modal([h("h3",{text:"Manga Shelf account"}),h("p",{class:"muted",text:"Sign in or create an account to upload manga, save your library, and message readers."}),h("label",{text:"Email"}),em,h("label",{text:"Password"}),pw,msg,h("div",{class:"row"},goBtn,swap)]);set("in")}
+function signOut(){sb.auth.signOut().then(function(r){if(r.error)throw r.error;toast("Signed out")}).catch(function(e){toast(e.message||"Sign-out failed")})}
+function start(){var activeUid="__unset",publicStarted=false,userSubs=[];if(!window.supabase){S.loaded=true;route();toast("Could not load Supabase. Check your connection.");return}sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});db=makeDb();assets=makeAssets();function session(s){var next=s&&s.user?s.user.id:null;if(next===activeUid)return;activeUid=next;userSubs.forEach(function(x){try{x.unsubscribe()}catch(e){}});userSubs=[];uid=next;isAdmin=uid===OWNER_UID;S.mine=[];S.dmIn=[];S.dmOut=[];S.dms=[];S.profInit=false;S.loaded=true;if(uid){userSubs.push(collection("data/users/"+uid).onSnapshot(function(x){S.mine=x.docs.map(function(y){var d=y.data()||{};d.id=y.id;return d});route();if(refreshFn)refreshFn()}));userSubs.push(dmsub("to","dmIn"));userSubs.push(dmsub("from","dmOut"))} if(!publicStarted){publicStarted=true;["series","chapters","news","reads","profiles"].forEach(function(t){sub(t,function(d){if(t==="profiles"){S.profiles={};d.forEach(function(p){S.profiles[p.id]=p});if(uid){var mp=S.profiles[uid],ck="ms-prof-"+uid,lc=null;try{lc=JSON.parse(localStorage.getItem(ck)||"null")}catch(e){}if(lc&&(!mp||(lc.upd||0)>(mp.upd||0))&&(mp||lc.since)){S.profiles[uid]=Object.assign({id:uid},lc);put("profiles/"+uid,lc).catch(function(){})}else if(mp){try{localStorage.setItem(ck,JSON.stringify(mp))}catch(e){}}syncPrefs(S.profiles[uid]);if(!S.profInit){S.profInit=true;if(!mp){var o=Object.assign({name:"",bio:"",avatar:null,banner:null},{since:Date.now()});S.profiles[uid]=Object.assign({id:uid},o);put("profiles/"+uid,o).catch(function(){})}}}}else S[t]=d;S.loaded=true;route();if(refreshFn)refreshFn()})});}if(isAdmin)userSubs.push(sub("support",function(d){S.support=d}));route()}sb.auth.getSession().then(function(r){session(r.data.session)}).catch(function(){session(null)});sb.auth.onAuthStateChange(function(e,s){if(e==="SIGNED_IN"||e==="SIGNED_OUT"||e==="TOKEN_REFRESHED")session(s)})}
+
+
+/* ---------- routing ---------- */
+var inReader=false,readerChap=null;
+function route(){
+  var hs=location.hash;
+  hideTip();if(hs!=="#profile")profDirty=false;else if(profDirty||(document.activeElement&&document.activeElement.closest&&document.activeElement.closest(".pw")))return;
+  if(inReader&&hs==="#r-"+readerChap&&S.chapters.some(function(c){return c.id===readerChap}))return;
+  if(hs.indexOf("#r-")===0){openReader(hs.slice(3));return}
+  closeReader();
+  if(hs.indexOf("#s-")===0)seriesView(hs.slice(3));
+  else if(hs.indexOf("#u-")===0)userPage(hs.slice(3));
+  else if(hs==="#profile")profileView();
+  else if(hs==="#library")libraryView();
+  else if(hs==="#updates"||hs==="#popular")home(hs.slice(1));
+  else home("");
+}
+window.addEventListener("hashchange",route);
+function go(x){if(location.hash==="#"+x)route();else location.hash=x}
+
+/* ---------- shell ---------- */
+function shell(){
+  $app.textContent="";
+  $app.appendChild(h("header",{},h("button",{class:"ib",onclick:menu,"aria-label":"Menu"},"☰"),
+    h("h1",{onclick:function(){S.genre="";S.q="";go("home")}},h("b",{text:"Manga"}),"Shelf"),
+    uid?h("button",{class:"btn",onclick:function(){seriesDlg(null)}},"+ Add"):h("button",{class:"btn",onclick:authDlg},"Sign in"),uid?h("span",{class:"ibw"},h("button",{class:"ib",onclick:function(){msgsDlg()},"aria-label":"Messages"},"✉"),unread()?h("span",{class:"dot",text:String(unread())}):null):null,uid?h("span",{style:"cursor:pointer;display:flex",onclick:function(){go("profile")}},avatar(uid,34)):null));
+  var m=h("main");$app.appendChild(m);return m;
+}
+function menu(){
+  var ov=h("div",{class:"modal",style:"align-items:stretch;justify-content:flex-start;z-index:55",onclick:function(e){if(e.target===ov)ov.remove()}});
+  function it(t,f){return h("div",{class:"it",onclick:function(){ov.remove();f()}},t)}
+  var d=h("div",{class:"drawer"},
+    h("div",{class:"by",onclick:function(){ov.remove();go("profile")}},uid?avatar(uid,36):null,h("b",{text:uid?pname(uid):"Guest"})),
+    h("h4",{text:"Browse"}),it("🏠 Home",function(){S.genre="";go("home")}),it("🆕 Latest updates",function(){go("updates")}),it("🔥 Popular",function(){go("popular")}),it("♥ My library",function(){go("library")}),
+    h("h4",{text:"Create"}),it("＋ Add manga",function(){seriesDlg(null)}),isAdmin?it("📰 Post news",newsDlg):null,it("👤 My profile",function(){go("profile")}),it("🎨 Theme color",themeDlg),it("👥 Friends",friendsDlg),it("✉ Messages",function(){msgsDlg()}),it("⚙ Settings",settingsDlg),it("✨ What's new",whatsNew),uid?it("↪ Sign out",signOut):it("Sign in / Create account",authDlg),it("🛟 Support",supportDlg),
+    h("h4",{text:"Genres"}),GENRES.map(function(g){return it(g,function(){S.genre=g;go("home")})}));
+  ov.appendChild(d);document.body.appendChild(ov);
+}
+function modal(content){var sh=h("div",{class:"sheet"},content);var m=h("div",{class:"modal",onclick:function(e){if(e.target===m)m.remove()}},sh);document.body.appendChild(m);return m}
+function needUpload(){if(!assets){toast("Uploading needs a Contributor/Editor invite");return true}return false}
+function needDb(){if(!db||!uid){toast("Sign in to do this");return true}return false}
+
+/* ---------- home ---------- */
+function card(s,subt){var el=h("div",{class:"card",onclick:function(){preview(s)}},h("div",{class:"cv"},s.cover?h("img",{src:blob(s.cover),loading:"lazy",alt:""}):null),h("p",{text:s.title}),s.by?h("div",{class:"by2"},nameEl(s.by)):null,h("small",{text:subt||(chOf(s.id).length+" ch")}));hoverTip(el,function(){return tipSeries(s)});return el}
+function latestList(){var seen={},out=[];S.chapters.slice().sort(function(a,b){return (b.created||0)-(a.created||0)}).forEach(function(c){var s=ser(c.sid);if(s&&!seen[s.id]){seen[s.id]=1;out.push([s,"Ch. "+c.n+" · "+ago(c.created)])}});return out}
+function popList(){return S.series.slice().sort(function(a,b){return readers(b.id)-readers(a.id)||(b.created||0)-(a.created||0)}).map(function(s){return [s,"👁 "+readers(s.id)]})}
+function home(mode){
+  var m=shell();
+  if(!S.loaded){m.appendChild(h("div",{class:"empty",text:"Loading…"}));return}
+  if(!db){m.appendChild(h("div",{class:"empty",text:"Browse Manga Shelf. Sign in to upload and save your library."}));return}
+  function sec(t,list,all){var wrap=all?h("div",{class:"grid"}):h("div",{class:"rowx"});list.forEach(function(x){wrap.appendChild(card(x[0],x[1]))});
+    if(!list.length)wrap=h("div",{class:"muted",text:"Nothing yet."});
+    m.appendChild(h("div",{class:"sh"},h("h3",{text:t}),(!all&&list.length>3)?h("a",{onclick:function(){go(t.indexOf("Latest")>-1?"updates":"popular")},text:"See all"}):null));m.appendChild(all||!list.length?wrap:scrollable(wrap))}
+  if(mode==="updates"){m.appendChild(h("h2",{text:"Latest updates"}));m.appendChild(h("div",{class:"grid"},latestList().map(function(x){return card(x[0],x[1])})));return}
+  if(mode==="popular"){m.appendChild(h("h2",{text:"Popular"}));m.appendChild(h("div",{class:"grid"},popList().map(function(x){return card(x[0],x[1])})));return}
+  /* news */
+  var news=S.news.slice().sort(function(a,b){return (b.created||0)-(a.created||0)}).slice(0,6);
+  var nw=h("div",{class:"news"});
+  if(!news.length)nw.appendChild(h("div",{class:"nc"},h("b",{text:"Welcome to Manga Shelf"}),h("span",{text:isAdmin?"Tap ☰ → Post news to add announcements.":"Announcements will show up here."})));
+  news.forEach(function(n){nw.appendChild(h("div",{class:"nc",onclick:function(){modal([n.img?h("img",{src:blob(n.img),style:"width:100%;border-radius:10px"}):null,h("h3",{text:n.title}),h("p",{text:n.body}),h("div",{class:"muted",text:ago(n.created)}),isAdmin?h("div",{class:"row"},h("button",{class:"btn del",onclick:function(){db.doc("news/"+n.id).delete();document.querySelector(".modal:last-of-type").remove()}},"Delete")):null])}},n.img?h("img",{src:blob(n.img),alt:""}):null,h("b",{text:n.title}),h("span",{text:(n.body||"").slice(0,70)})))});
+  m.appendChild(scrollable(nw));continueRow(m);
+  var inp=h("input",{type:"search",placeholder:"Search titles…",value:S.q});m.appendChild(inp);
+  /* sections */
+  var dyn=h("div");m.appendChild(dyn);
+  function draw(){var keep=m;dyn.textContent="";var old=m;
+    var q=S.q.toLowerCase();
+    var filt=S.series.filter(function(s){return (s.title||"").toLowerCase().indexOf(q)>-1&&(!S.genre||(s.tags||[]).indexOf(S.genre)>-1)}).sort(function(a,b){return (b.created||0)-(a.created||0)});
+    var chips=h("div",{class:"chips"},h("span",{class:"chip"+(S.genre?"":" on"),onclick:function(){S.genre="";draw()}},"All"),GENRES.map(function(g){return h("span",{class:"chip"+(S.genre===g?" on":""),onclick:function(){S.genre=g;draw()}},g)}));
+    var tmp=m;m=dyn;
+    if(!q&&!S.genre){sec("🆕 Latest updates",latestList());sec("🔥 Popular",popList().slice(0,10))}
+    m.appendChild(h("div",{class:"sh"},h("h3",{text:S.genre||"All manga"})));m.appendChild(chips);
+    if(!filt.length)m.appendChild(h("div",{class:"empty",text:S.series.length?"No matches.":"Nothing here yet. Tap + Add to upload the first manga."}));
+    else m.appendChild(h("div",{class:"grid"},filt.map(function(s){return card(s)})));
+    m=tmp;
+  }
+  inp.addEventListener("input",function(){S.q=inp.value;draw()});draw();
+}
+
+/* ---------- preview ---------- */
+function tagChips(s){return h("div",{class:"chips"},(s.tags||[]).map(function(t){return h("span",{class:"chip",text:t,onclick:function(){S.genre=t;document.querySelectorAll(".modal").forEach(function(x){x.remove()});go("home")}})}))}
+function byLine(s){return s.by?h("div",{class:"by",onclick:function(){profileSheet(s.by)}},avatar(s.by,22),h("span",{class:"muted",text:"by "+pname(s.by)})):null}
+function preview(s){
+  var chs=chOf(s.id),first=chs[0],m;
+  var strip=h("div",{class:"peek"});
+  if(first)first.pages.slice(0,4).forEach(function(p){strip.appendChild(h("img",{src:blob(p),loading:"lazy",alt:""}))});
+  m=modal([h("div",{class:"hero"},h("div",{class:"cv"},s.cover?h("img",{src:blob(s.cover),alt:""}):null),
+    h("div",{},h("h2",{text:s.title}),h("div",{class:"muted",text:s.author||""}),byLine(s),h("div",{class:"muted",text:chs.length+" chapters · 👁 "+readers(s.id)}))),
+    tagChips(s),h("p",{text:s.desc||"No description yet."}),first?[h("div",{class:"muted",text:"Preview"}),strip]:null,
+    h("div",{class:"row"},(function(){var p=mineGet("p-"+s.id),pc=p&&chs.filter(function(c){return c.id===p.cid})[0];if(pc)return h("button",{class:"btn",onclick:function(){m.remove();resumeAt=p.page;go("r-"+pc.id)}},"Continue ch. "+pc.n);return first?h("button",{class:"btn",onclick:function(){m.remove();go("r-"+first.id)}},"Read ch. "+first.n):null})(),favBtn(s),
+      h("button",{class:"btn alt",onclick:function(){m.remove();go("s-"+s.id)}},"Open page"))]);
+}
+
+/* ---------- forms ---------- */
+function chipPick(sel){var w=h("div",{class:"chips"});GENRES.forEach(function(g){var c=h("span",{class:"chip"+(sel.indexOf(g)>-1?" on":""),text:g,onclick:function(){var i=sel.indexOf(g);if(i>-1)sel.splice(i,1);else sel.push(g);c.classList.toggle("on")}});w.appendChild(c)});return w}
+function seriesDlg(s){
+  if(needDb())return;
+  var tags=(s&&s.tags||[]).slice();
+  var t=h("input",{type:"text",placeholder:"Title",value:s?s.title:""}),a=h("input",{type:"text",placeholder:"Author / artist",value:s?s.author||"":""}),
+  d=h("textarea",{rows:"4",placeholder:"What's it about?"});d.value=s?s.desc||"":"";
+  var f=h("input",{type:"file",accept:"image/*"}),b=h("button",{class:"btn",text:s?"Save":"Create"}),m;
+  b.onclick=function(){
+    if(!t.value.trim()){toast("Add a title");return}
+    if(f.files[0]&&needUpload())return;
+    b.disabled=true;b.textContent="Saving…";
+    var p=f.files[0]?assets.upload(f.files[0]).then(function(r){return r.id}):Promise.resolve(s?s.cover:null);
+    p.then(function(cid){var id=s?s.id:uidn();
+      var o=Object.assign({},s||{by:uid,created:Date.now()},{title:t.value.trim(),author:a.value.trim(),desc:d.value.trim(),tags:tags,cover:cid||null});
+      return put("series/"+id,o).then(function(){m.remove();if(!s)go("s-"+id);else toast("Saved")})})
+    .catch(function(){b.disabled=false;b.textContent=s?"Save":"Create";toast("Failed, try again")});
+  };
+  var del=s?h("button",{class:"btn del",onclick:function(){if(!confirm("Delete this manga and all its chapters?"))return;
+    chOf(s.id).forEach(function(c){db.doc("chapters/"+c.id).delete()});db.doc("series/"+s.id).delete().then(function(){m.remove();go("home")})}},"Delete"):null;
+  m=modal([h("h3",{text:s?"Edit manga":"New manga"}),t,h("label",{text:"Author"}),a,h("label",{text:"Description"}),d,h("label",{text:"Genres"}),chipPick(tags),
+    h("label",{text:s?"Replace cover (optional)":"Cover image"}),f,h("div",{class:"row"},b,del)]);
+}
+function chapterDlg(s,c){
+  if(needDb())return;
+  var last=chOf(s.id).slice(-1)[0];
+  var n=h("input",{type:"number",step:"0.1",value:c?c.n:(last?Math.floor(last.n)+1:1)}),t=h("input",{type:"text",placeholder:"Chapter title (optional)",value:c?c.title||"":""}),
+  f=h("input",{type:"file",accept:"image/*",multiple:"multiple"}),b=h("button",{class:"btn",text:c?"Save":"Upload chapter"}),st=h("p",{class:"muted"}),m;
+  b.onclick=function(){
+    var files=Array.prototype.slice.call(f.files).sort(nat);
+    if(!c&&!files.length){toast("Pick the page images");return}
+    if(files.length&&needUpload())return;
+    b.disabled=true;var ids=[],i=0;
+    (function next(){
+      if(i>=files.length){
+        var o=Object.assign({},c||{sid:s.id,by:uid,created:Date.now()},{n:parseFloat(n.value)||0,title:t.value.trim()});
+        if(files.length)o.pages=ids;else if(c)o.pages=c.pages;
+        put("chapters/"+(c?c.id:uidn()),o).then(function(){m.remove();toast(c?"Saved":"Chapter added")}).catch(function(){b.disabled=false;toast("Failed to save")});
+        if(!c)put("series/"+s.id,Object.assign({},s,{updated:Date.now()})).catch(function(){});
+        return}
+      st.textContent="Uploading page "+(i+1)+" of "+files.length+"…";
+      assets.upload(files[i]).then(function(r){ids.push(r.id);i++;next()}).catch(function(){b.disabled=false;st.textContent="Upload failed at page "+(i+1)+". Try again."});
+    })();
+  };
+  var del=c?h("button",{class:"btn del",onclick:function(){if(confirm("Delete this chapter?"))db.doc("chapters/"+c.id).delete().then(function(){m.remove()})}},"Delete"):null;
+  m=modal([h("h3",{text:c?"Edit chapter":"Add chapter"}),h("label",{text:"Chapter number"}),n,h("label",{text:"Title"}),t,
+    h("label",{text:c?"Replace all pages (optional, ordered by file name)":"Pages (select all, ordered by file name)"}),f,st,h("div",{class:"row"},b,del)]);
+}
+function newsDlg(){
+  if(!isAdmin){toast("Only editors can post news");return}
+  var t=h("input",{type:"text",placeholder:"Headline"}),b=h("textarea",{rows:"4",placeholder:"Details"}),f=h("input",{type:"file",accept:"image/*"}),btn=h("button",{class:"btn",text:"Post"}),m;
+  btn.onclick=function(){if(!t.value.trim())return toast("Add a headline");btn.disabled=true;
+    (f.files[0]&&assets?assets.upload(f.files[0]).then(function(r){return r.id}):Promise.resolve(null))
+    .then(function(img){return put("news/"+uidn(),{title:t.value.trim(),body:b.value.trim(),img:img,created:Date.now()})}).then(function(){m.remove();toast("Posted")}).catch(function(){btn.disabled=false;toast("Failed")})};
+  m=modal([h("h3",{text:"Post news"}),t,h("label",{text:"Details"}),b,h("label",{text:"Banner image (optional)"}),f,h("div",{class:"row"},btn)]);
+}
+
+/* ---------- series page ---------- */
+function seriesView(id){
+  var m=shell(),s=ser(id);
+  if(!s){m.appendChild(h("div",{class:"empty",text:S.loaded?"Not found.":"Loading…"}));return}
+  var chs=chOf(id);
+  m.appendChild(h("div",{class:"hero"},h("div",{class:"cv"},s.cover?h("img",{src:blob(s.cover),alt:""}):null),
+    h("div",{},h("h2",{text:s.title}),h("div",{class:"muted",text:s.author||""}),byLine(s),h("div",{class:"muted",text:chs.length+" chapters · 👁 "+readers(id)}))));
+  m.appendChild(tagChips(s));if(s.desc)m.appendChild(h("p",{text:s.desc}));
+  m.appendChild(h("div",{class:"row"},contBtn(s,chs),favBtn(s),chs.length?h("button",{class:"btn alt",onclick:function(){go("r-"+chs[0].id)}},"Read first"):null,
+    chs.length>1?h("button",{class:"btn alt",onclick:function(){go("r-"+chs[chs.length-1].id)}},"Latest"):null,
+    h("button",{class:"btn alt",onclick:function(){chapterDlg(s,null)}},"+ Chapter"),
+    can(s)?h("button",{class:"btn alt",onclick:function(){seriesDlg(s)}},"✎ Edit"):null));
+  if(!chs.length)m.appendChild(h("div",{class:"empty",text:"No chapters yet."}));
+  chs.slice().reverse().forEach(function(c){
+    m.appendChild(h("div",{class:"ch",onclick:function(){go("r-"+c.id)}},h("span",{text:"Chapter "+c.n+(c.title?": "+c.title:"")}),
+      h("span",{class:"muted"},c.pages.length+"p · "+ago(c.created)+" ",can(c)?h("button",{class:"ib",onclick:function(e){e.stopPropagation();chapterDlg(s,c)}},"✎"):null)))});
+}
+
+/* ---------- profiles & theme ---------- */
+var ACC="#e5484d",PRESETS=["#e5484d","#f97316","#eab308","#22c55e","#14b8a6","#3b82f6","#6366f1","#8b5cf6","#ec4899","#64748b"],profDirty=false;
+function lum(x){var n=parseInt(x.slice(1),16);return (0.299*(n>>16&255)+0.587*(n>>8&255)+0.114*(n&255))/255}
+function applyAccent(c){if(!/^#[0-9a-f]{6}$/i.test(c||""))return;ACC=c;var r=document.documentElement.style;r.setProperty("--acc",c);r.setProperty("--onacc",lum(c)>0.62?"#111":"#fff")}
+try{applyAccent(localStorage.getItem("ms-acc"))}catch(e){}
+function setAccent(c){applyAccent(c);savePrefs()}
+function themeDlg(){var m;
+  var sw=h("div",{class:"row"},PRESETS.map(function(c){return h("div",{class:"sw"+(c.toLowerCase()===ACC.toLowerCase()?" on":""),style:"background:"+c,onclick:function(){setAccent(c);m.remove();themeDlg()}})}));
+  var pick=h("input",{type:"color",value:ACC,style:"width:100%;height:64px;border:0;background:none;padding:0"});
+  pick.addEventListener("input",function(){applyAccent(pick.value)});pick.addEventListener("change",function(){setAccent(pick.value)});
+  m=modal([h("h3",{text:"Accent color"}),h("label",{text:"Presets"}),sw,h("label",{text:"Pick any color"}),pick,h("p",{class:"muted",text:"Saved to your account when you're signed in."}),h("div",{class:"row"},h("button",{class:"btn",onclick:function(){m.remove()}},"Done"))]);
+}
+function crownEl(){var s=h("span",{style:"display:inline-flex"});s.innerHTML='<svg viewBox="0 0 24 24" width="16" height="16"><path fill="#f5c542" d="M3 7l4.5 4L12 4l4.5 7L21 7l-2 11H5z"/><rect x="5" y="19.5" width="14" height="2.2" rx="1.1" fill="#e0a512"/></svg>';return s}
+function badgesFor(id){
+  var ns=S.series.filter(function(x){return x.by===id}).length,nc=S.chapters.filter(function(x){return x.by===id}).length,nr=S.reads.filter(function(x){return x.uid===id}).length,
+  pop=S.series.some(function(x){return x.by===id&&readers(x.id)>=5}),p=S.profiles[id]||{};
+  var b=[["crown","Creator","Joined as a creator"]];
+  if(ns>=1)b.push(["📚","Publisher","Uploaded a manga"]);
+  if(nc>=5)b.push(["✍️","Prolific","Uploaded 5+ chapters"]);
+  if(nr>=10)b.push(["📖","Bookworm","Read 10+ chapters"]);
+  if(pop)b.push(["🔥","Fan favorite","A manga with 5+ readers"]);
+  if(p.avatar&&p.bio)b.push(["🎨","Personalized","Added a picture and bio"]);
+  return b}
+function readURL(f,cb){var r=new FileReader();r.onload=function(){cb(r.result)};r.readAsDataURL(f)}
+function profileCard(id,edit){
+  var p=S.profiles[id]||{},st={a:null,b:null},bn=h("div",{class:"pbn"}),avw=h("div",{class:"pav"}),wrap=h("div",{class:"pw"});
+  var dc=(p.decos||[]).map(function(d){return Object.assign({},d)}),sel=-1;
+  function showBn(src){bn.textContent="";var u2=src||p.bannerData||(p.banner?blob(p.banner):null);if(u2)bn.appendChild(h("img",{src:u2,alt:"",onerror:function(e){e.target.remove()}}));if(edit)bn.appendChild(h("div",{class:"hint",text:"📷 Change banner"}))}
+  function showAv(src){avw.textContent="";var u2=src||p.avatarData||(p.avatar?blob(p.avatar):null);var a=h("span",{class:"av",style:"position:relative;width:88px;height:88px;font-size:38px"},pname(id).charAt(0).toUpperCase());
+    if(u2)a.appendChild(h("img",{src:u2,alt:"",style:"position:absolute;inset:0",onerror:function(e){e.target.remove()}}));avw.appendChild(a);if(edit)avw.appendChild(h("div",{class:"hint",text:"📷"}))}
+  showBn(null);showAv(null);
+  var fa=h("input",{type:"file",accept:"image/*",style:"display:none"}),fb=h("input",{type:"file",accept:"image/*",style:"display:none"}),fi=h("input",{type:"file",accept:"image/*",style:"display:none"});
+  var body=h("div",{class:"pbody"}),ni,bi,save,g1,g2,dp=h("div");
+  var tm=null,stat=h("div",{class:"muted",style:"font-size:12px;margin-top:6px",text:"Changes save automatically"});
+  function build(){var o=Object.assign({},S.profiles[id]||{},{name:ni.value.trim(),bio:bi.value.trim(),avatarData:st.aD||p.avatarData||null,bannerData:st.bD||p.bannerData||null,n1:g1.value,n2:g2.value,decos:dc,upd:Date.now()});if(!o.since)o.since=Date.now();delete o.id;return o}
+  function touch(){profDirty=true;if(!ni||!g2)return;var o=build();S.profiles[id]=Object.assign({id:id},o);cacheProf(id,o);stat.textContent="Saving…";clearTimeout(tm);tm=setTimeout(commit,700)}
+  function commit(){if(!db||!ni)return Promise.resolve();var o=build();S.profiles[id]=Object.assign({id:id},o);cacheProf(id,o);
+    return put("profiles/"+id,o).then(function(){profDirty=false;stat.textContent="All changes saved ✓"}).catch(function(){stat.textContent="Couldn't save yet, retrying…";clearTimeout(tm);tm=setTimeout(commit,4000)})}
+  function drawDecos(){wrap.querySelectorAll(".dc").forEach(function(x){x.remove()});
+    dc.forEach(function(d,i){var el=h("div",{class:"dc"+(edit?" ed":"")+(i===sel?" sel":""),style:"left:"+d.x+"%;top:"+d.y+"%;font-size:"+d.s+"px;transform:translate(-50%,-50%)"},h("span",{class:"da a-"+(d.a||"none")},d.k&&LIB[d.k]?libEl(d.k):d.i?h("img",{src:blob(d.i),alt:""}):d.e));
+      if(edit)drag(el,d,i);wrap.appendChild(el)})}
+  function drag(el,d,i){el.addEventListener("pointerdown",function(e){e.preventDefault();sel=i;wrap.querySelectorAll(".dc").forEach(function(x){x.classList.remove("sel")});el.classList.add("sel");decoPanel();
+    var r=wrap.getBoundingClientRect();try{el.setPointerCapture(e.pointerId)}catch(x){}
+    function mv(ev){d.x=Math.round(Math.max(-3,Math.min(103,(ev.clientX-r.left)/r.width*100))*10)/10;d.y=Math.round(Math.max(-3,Math.min(103,(ev.clientY-r.top)/r.height*100))*10)/10;el.style.left=d.x+"%";el.style.top=d.y+"%";touch()}
+    function up(){el.removeEventListener("pointermove",mv);el.removeEventListener("pointerup",up)}
+    el.addEventListener("pointermove",mv);el.addEventListener("pointerup",up)})}
+  function addDeco(o){if(dc.length>=12){toast("Max 12 decorations");return}dc.push(Object.assign({x:86,y:6,s:42,a:"bounce"},o));sel=dc.length-1;touch();drawDecos();decoPanel()}
+  function decoPanel(){dp.textContent="";dp.appendChild(h("div",{class:"lbl",text:"DECORATIONS · TAP TO ADD, THEN DRAG AROUND THE CARD"}));
+    dp.appendChild(h("div",{class:"lib"},Object.keys(LIB).map(function(k){var t=h("div",{class:"lt",title:LIB[k].n,onclick:function(){addDeco({k:k,a:"none",s:k==="lights"?26:44})}});t.appendChild(libEl(k,true));return t})));
+    dp.appendChild(h("div",{class:"chips"},["👑","✨","🌸","⭐","🔥","💫","🎀","🦋","❤️","🎧","🐱","☁️"].map(function(e){return h("span",{class:"chip",text:e,onclick:function(){addDeco({e:e})}})})));
+    var ct=h("input",{type:"text",placeholder:"Any emoji or text",style:"flex:1"});
+    dp.appendChild(h("div",{class:"row",style:"flex-wrap:nowrap;margin:4px 0"},ct,h("button",{class:"btn alt",onclick:function(){if(ct.value.trim())addDeco({e:ct.value.trim().slice(0,4)})}},"Add"),h("button",{class:"btn alt",onclick:function(){if(!needUpload())fi.click()}},"🖼")));
+    if(sel>-1&&dc[sel]){var d=dc[sel];
+      dp.appendChild(h("div",{class:"chips"},["none","bounce","jingle","float","spin","pulse"].map(function(a){return h("span",{class:"chip"+((d.a||"none")===a?" on":""),text:a,onclick:function(){d.a=a;touch();drawDecos();decoPanel()}})})));
+      var rg=h("input",{type:"range",min:"16",max:"96",value:String(d.s),style:"width:100%"});rg.addEventListener("input",function(){d.s=+rg.value;touch();drawDecos()});
+      dp.appendChild(rg);dp.appendChild(h("button",{class:"btn del",onclick:function(){dc.splice(sel,1);sel=-1;touch();drawDecos();decoPanel()}},"Delete selected"))}}
+  if(edit){
+    avw.style.cursor=bn.style.cursor="pointer";avw.onclick=function(){fa.click()};bn.onclick=function(){fb.click()};
+    fa.addEventListener("change",function(){if(fa.files[0]){touch();readURL(fa.files[0],function(u){shrink(u,256,256,0.85,function(d){st.aD=d;showAv(d);touch()})})}});
+    fb.addEventListener("change",function(){if(fb.files[0]){touch();readURL(fb.files[0],function(u){shrink(u,900,320,0.8,function(d){st.bD=d;showBn(d);touch()})})}});
+    fi.addEventListener("change",function(){if(fi.files[0])assets.upload(fi.files[0]).then(function(r){addDeco({i:r.id})}).catch(function(){toast("Image upload failed")})});
+    ni=h("input",{type:"text",placeholder:"Display name",value:p.name||""});ni.addEventListener("input",function(){touch()});
+    bi=h("textarea",{rows:"3",placeholder:"About you"});bi.value=p.bio||"";bi.addEventListener("input",function(){touch()});
+    g1=h("input",{type:"color",value:p.n1||ACC,style:"flex:1;height:40px;border:0;background:none;padding:0"});g2=h("input",{type:"color",value:p.n2||"#ec4899",style:"flex:1;height:40px;border:0;background:none;padding:0"});
+    g1.addEventListener("input",function(){touch()});g2.addEventListener("input",function(){touch()});
+    save=h("button",{class:"btn",text:"Save profile"});
+    save.onclick=function(){clearTimeout(tm);Promise.resolve(commit()).then(function(){toast("Profile saved ✓");route()})};
+    body.appendChild(ni);body.appendChild(h("div",{style:"height:8px"}));body.appendChild(bi);
+    body.appendChild(h("div",{class:"lbl",text:"NAME GRADIENT"}));body.appendChild(h("div",{class:"row",style:"margin:0;flex-wrap:nowrap"},g1,g2));
+    body.appendChild(dp);decoPanel();
+  }else{
+    body.appendChild(h("h2",{class:"gname",style:"margin:0;cursor:default;--g1:"+(p.n1||ACC)+";--g2:"+(p.n2||"#ec4899"),text:pname(id)}));body.appendChild(h("p",{text:p.bio||"No bio yet."}))}
+  body.appendChild(h("div",{class:"lbl",text:"BADGES"}));
+  body.appendChild(badgeRow(id,edit));
+  body.appendChild(h("div",{class:"since"},h("div",{class:"lbl",style:"margin-top:0",text:"MEMBER SINCE"}),
+    h("div",{text:p.since?new Date(p.since).toLocaleDateString(undefined,{year:"numeric",month:"long",day:"numeric"}):"Today"})));
+  if(edit){body.appendChild(h("div",{class:"row"},save));body.appendChild(stat)}
+  wrap.appendChild(h("div",{class:"pc"},h("div",{class:"in"},bn,avw,body,fa,fb,fi)));
+  drawDecos();return wrap;
+}
+function profileSheet(id){document.querySelectorAll(".modal").forEach(function(x){x.remove()});go("u-"+id)}
+function profileView(){
+  var m=shell(),diag=h("p",{class:"muted",style:"font-size:12px",text:"Account: "+(uid?"signed in":"guest")+" · Saving: "+(db?"on":"off")+" · Uploads: "+(assets?"on":"off")});
+  if(!uid){m.appendChild(h("div",{class:"empty",text:"You're browsing as a guest. Sign in or create an account to make your profile."}));m.appendChild(diag);return}
+  m.appendChild(profileCard(uid,true));
+  m.appendChild(h("div",{class:"row",style:"justify-content:center"},h("button",{class:"btn alt",onclick:settingsDlg},"⚙ Settings"),h("button",{class:"btn alt",onclick:friendsDlg},"👥 Find friends"),h("button",{class:"btn alt",onclick:function(){msgsDlg()}},"✉ Messages")));
+  m.appendChild(h("p",{class:"muted",style:"font-size:13px;text-align:center",text:"Tap your picture or banner to choose a photo. You'll see a preview here before you save."}));
+  var mine=S.series.filter(function(x){return x.by===uid});
+  m.appendChild(h("div",{class:"sh"},h("h3",{text:"My uploads"})));
+  m.appendChild(mine.length?h("div",{class:"grid"},mine.map(function(x){return card(x)})):h("div",{class:"muted",text:"Nothing uploaded yet."}));
+  var fl=S.mine.filter(function(x){return x.id.indexOf("fr-")===0}).sort(function(a,b){return (b.t||0)-(a.t||0)}).map(function(x){return x.fid});
+  m.appendChild(h("div",{class:"sh"},h("h3",{text:"Friends ("+fl.length+")"}),h("a",{onclick:friendsDlg,text:"Find friends"})));
+  m.appendChild(fl.length?h("div",{style:"display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:8px"},fl.map(function(f){return h("div",{class:"urow",style:"border:1px solid var(--line);background:var(--card)",onclick:function(){go("u-"+f)}},avatar(f,40),nameEl(f,true),h("span",{style:"flex:1"}),h("button",{class:"ib",title:"Remove friend",onclick:function(e){e.stopPropagation();toggleFriend(f)}},"✕"))})):h("div",{class:"muted",text:"No friends added yet. Tap Find friends to search for people."}));
+  m.appendChild(diag);
+}
+
+/* ---------- social, settings ---------- */
+var VERSION="1.10",refreshFn=null,tipEl=null;
+var CHANGELOG=[
+["1.10","Mobile fix",["Profile decorations no longer sit on top of the header or block taps, so ☰, + Add and ✉ work again on phones","Snappier taps and a lighter rim glow on touch screens"]],
+["1.9","Autosave update",["Profile name, bio, picture, banner, name colors and decorations now save automatically as you edit","Light/dark mode, accent color and gradient background save together and always keep your newest choice","A copy is also kept on your device, so a refresh can never roll your changes back"]],
+["1.8","Saving update",["Profile picture and banner are now saved right inside your profile, so they keep showing and no longer depend on file uploads","Private contact email under Settings → Email & backup","Backup and restore for your profile, library and reading progress"]],
+["1.7","Social update",["Hover previews on covers and creator names","Friends: search people, add them, and see your friends list on your profile","Direct messages with unread badges","Creator names under every cover, clickable, in gradient colors","A profile page for every member","Profile decorations: add emoji or images, drag them around your card, animate them","Settings: light, dark or auto, plus custom top-to-bottom gradient backgrounds","Support center and this What's new page","New fonts","Original badge artwork. Tap a badge to view it, then add it to or remove it from your profile","Decoration library with an animated crown, shark jaw, sparkles, Christmas lights, halo, cat ears, hearts and flame"]],
+["1.6","Desktop",["Wider desktop layout and centered pop-ups","Keyboard controls and hover effects","Scroll buttons on rows"]],
+["1.5","Profiles",["Discord-style profile card with banner, badges and member-since","Animated rim light","Accent color picker"]],
+["1.4","Library",["Reading progress and Continue reading","My library"]],
+["1.3","Discovery",["Editing, genres, descriptions and previews","News banner, sidebar, Latest updates and Popular","Profiles with pictures and bios"]],
+["1.0","Launch",["Manga uploads, tap-to-turn reader, single and double pages, next chapter"]]];
+function setLive(el,fn){refreshFn=function(){if(document.body.contains(el))fn();else refreshFn=null}}
+function hideTip(){if(tipEl){tipEl.remove();tipEl=null}}
+function placeTip(e){if(!tipEl)return;var w=tipEl.offsetWidth,hh=tipEl.offsetHeight,x=e.clientX+16,y=e.clientY+16;if(x+w>innerWidth-8)x=e.clientX-w-16;if(y+hh>innerHeight-8)y=e.clientY-hh-16;tipEl.style.left=Math.max(8,x)+"px";tipEl.style.top=Math.max(8,y)+"px"}
+function hoverTip(el,fn){if(!window.matchMedia||!matchMedia("(hover:hover)").matches)return;
+  el.addEventListener("mouseenter",function(e){hideTip();var c=fn();if(!c)return;tipEl=h("div",{class:"tip"},c);document.body.appendChild(tipEl);placeTip(e)});
+  el.addEventListener("mousemove",placeTip);el.addEventListener("mouseleave",hideTip);el.addEventListener("click",hideTip)}
+function tipSeries(s){var n=chOf(s.id).length,d=s.desc||"";return [h("b",{text:s.title}),h("div",{class:"muted",text:(s.tags||[]).join(" · ")||"No genres yet"}),h("div",{style:"margin:6px 0",text:d?d.slice(0,130)+(d.length>130?"…":""):"No description yet."}),h("div",{class:"muted",text:n+" chapters · 👁 "+readers(s.id)+(s.by?" · by "+pname(s.by):"")})]}
+function tipUser(id){var p=S.profiles[id]||{};return [h("div",{class:"by",style:"cursor:default"},avatar(id,36),h("b",{style:"margin:0",text:pname(id)})),h("div",{style:"margin:6px 0",text:(p.bio||"No bio yet.").slice(0,120)}),h("div",{class:"muted",text:"Member since "+(p.since?new Date(p.since).toLocaleDateString(undefined,{month:"short",year:"numeric"}):"today")})]}
+function nameEl(id,plain){var p=S.profiles[id]||{};var e=h("span",{class:"gname",style:"--g1:"+(p.n1||ACC)+";--g2:"+(p.n2||"#ec4899"),text:pname(id)});
+  if(!plain){e.addEventListener("click",function(ev){ev.stopPropagation();hideTip();go("u-"+id)});hoverTip(e,function(){return tipUser(id)})}return e}
+
+/* ---------- original art: decorations + badges ---------- */
+var LIB={};
+function reg(k,n,ar,svg){LIB[k]={n:n,ar:ar,svg:svg.replace("<svg ",'<svg width="100%" height="100%" ')}}
+reg("crown","Crown",1,'<svg viewBox="0 0 24 24"><g class="sway"><path fill="#f5c542" d="M2 8l5 4 5-8 5 8 5-4-2 11H4z"/><rect x="4" y="20" width="16" height="2.4" rx="1.2" fill="#d99a14"/><circle cx="2" cy="8" r="1.6" fill="#ffe08a"/><circle cx="12" cy="4" r="1.6" fill="#ffe08a"/><circle cx="22" cy="8" r="1.6" fill="#ffe08a"/></g></svg>');
+reg("shark","Shark jaw",1.6,'<svg viewBox="0 0 48 30"><g class="jawT"><path fill="#5b7a99" d="M2 14C8 2 40 2 46 14Z"/><path fill="#fff" d="M6 14l3 7 3-7zM14 14l3 7 3-7zM22 14l3 7 3-7zM30 14l3 7 3-7zM38 14l3 7 3-7z"/></g><g class="jawB"><path fill="#44607c" d="M2 16C8 28 40 28 46 16Z"/><path fill="#fff" d="M10 16l3-7 3 7zM18 16l3-7 3 7zM26 16l3-7 3 7zM34 16l3-7 3 7z"/></g></svg>');
+reg("sparkles","Sparkles",1,'<svg viewBox="0 0 32 32"><path class="tw" fill="#ffe27a" d="M10 2Q10 10 18 10Q10 10 10 18Q10 10 2 10Q10 10 10 2Z"/><path class="tw" style="animation-delay:.5s" fill="#fff4b0" d="M24 3Q24 8 29 8Q24 8 24 13Q24 8 19 8Q24 8 24 3Z"/><path class="tw" style="animation-delay:1s" fill="#ffd1f0" d="M22 18Q22 24 28 24Q22 24 22 30Q22 24 16 24Q22 24 22 18Z"/></svg>');
+(function(){var cols=["#ef4444","#fbbf24","#22c55e","#3b82f6"],b="";for(var i=0;i<8;i++){var x=8+i*14.6,y=i%2?13:17;b+='<circle class="bl" style="animation-delay:'+(i*0.18).toFixed(2)+'s" cx="'+x.toFixed(1)+'" cy="'+y+'" r="3.2" fill="'+cols[i%4]+'"/>'}
+reg("lights","Christmas lights",4,'<svg viewBox="0 0 120 30"><path d="M0 7Q15 17 30 8T60 8T90 8T120 7" fill="none" stroke="#2f4a2f" stroke-width="1.4"/>'+b+'</svg>')})();
+reg("halo","Halo",1.5,'<svg viewBox="0 0 40 16"><g class="bobv"><ellipse cx="20" cy="8" rx="15" ry="5" fill="none" stroke="#ffe27a" stroke-width="3"/></g></svg>');
+reg("ears","Cat ears",1.6,'<svg viewBox="0 0 48 30"><g class="sway"><path fill="#3b3b4f" d="M6 28L8 4 22 20Z"/><path fill="#ff9bb8" d="M10 22L10.5 10 18 19Z"/><path fill="#3b3b4f" d="M42 28L40 4 26 20Z"/><path fill="#ff9bb8" d="M38 22L37.5 10 30 19Z"/></g></svg>');
+reg("hearts","Hearts",1,'<svg viewBox="0 0 24 24"><g class="bobv"><path fill="#ff5d8f" d="M9 20s-7-4.5-7-9.5a4 4 0 017-2.6 4 4 0 017 2.6C16 15.5 9 20 9 20z"/></g><g class="bobv" style="animation-delay:.6s"><path fill="#ff9bb8" d="M18 11s-4-2.6-4-5.5a2.3 2.3 0 014-1.5 2.3 2.3 0 014 1.5C22 8.4 18 11 18 11z"/></g></svg>');
+reg("flame","Flame",1,'<svg viewBox="0 0 24 24"><g class="bobv"><path fill="#ff7a1a" d="M12 2c1 4 6 6 6 12a6 6 0 01-12 0c0-3 2-4 3-7 1 2 2 2 3-5z"/><path fill="#ffd23f" d="M12 11c1 2 3 3 3 5a3 3 0 01-6 0c0-1.5 1-2 1.5-3 .5 1 1 1 1.5-2z"/></g></svg>');
+function libEl(k,fill){var l=LIB[k],sp=h("span",{style:fill?"display:block;width:100%;height:100%":"display:block;width:"+l.ar+"em;height:1em"});sp.innerHTML=l.svg;return sp}
+function ico(svg){var sp=h("span",{style:"display:inline-flex"});sp.innerHTML=svg;return sp}
+var BADGES=[
+ {id:"creator",n:"Creator",d:"A creator on the shelf, crowned on arrival.",how:"Given to everyone when they join.",has:function(){return true},svg:'<svg viewBox="0 0 24 24"><path fill="#f5c542" d="M2 8l5 4 5-8 5 8 5-4-2 11H4z"/><rect x="4" y="20" width="16" height="2.4" rx="1.2" fill="#d99a14"/><circle cx="12" cy="4" r="1.6" fill="#ffe08a"/></svg>'},
+ {id:"publisher",n:"Publisher",d:"Shared a manga with everyone.",how:"Upload your first manga.",has:function(i){return S.series.some(function(x){return x.by===i})},svg:'<svg viewBox="0 0 24 24"><path fill="#3b82f6" d="M4 3h13a3 3 0 013 3v15H7a3 3 0 01-3-3z"/><path fill="#fff" d="M8 7h8v2H8zM8 11h6v2H8z"/><path fill="#1e40af" d="M4 18a3 3 0 013-3h13v3H7a1 1 0 000 2h13v1H7a3 3 0 01-3-3z"/></svg>'},
+ {id:"prolific",n:"Prolific",d:"Keeps the chapters coming.",how:"Upload 5 chapters.",has:function(i){return S.chapters.filter(function(x){return x.by===i}).length>=5},svg:'<svg viewBox="0 0 24 24"><path fill="#a855f7" d="M20 3C12 3 6 8 6 15l-2 6 1 .5 3-4c7 0 11-6 12-14.5z"/><path stroke="#f5e1ff" stroke-width="1.2" fill="none" d="M7 18C10 13 14 9 18 6"/></svg>'},
+ {id:"bookworm",n:"Bookworm",d:"Always has a chapter open.",how:"Read 10 chapters.",has:function(i){return S.reads.filter(function(x){return x.uid===i}).length>=10},svg:'<svg viewBox="0 0 24 24"><path fill="#22c55e" d="M12 6c-2-2-6-2.5-9-1.5V19c3-1 7-.5 9 1.5 2-2 6-2.5 9-1.5V4.5C18 3.5 14 4 12 6z"/><path stroke="#eafff0" stroke-width="1.2" d="M12 6v14"/></svg>'},
+ {id:"fan",n:"Fan favorite",d:"One of your manga is catching fire.",how:"Get 5 readers on a single manga.",has:function(i){return S.series.some(function(x){return x.by===i&&readers(x.id)>=5})},svg:'<svg viewBox="0 0 24 24"><path fill="#ff7a1a" d="M12 2c1 4 6 6 6 12a6 6 0 01-12 0c0-3 2-4 3-7 1 2 2 2 3-5z"/><path fill="#ffd23f" d="M12 11c1 2 3 3 3 5a3 3 0 01-6 0c0-1.5 1-2 1.5-3 .5 1 1 1 1.5-2z"/></svg>'},
+ {id:"stylish",n:"Stylish",d:"Made their profile their own.",how:"Add a profile picture and a bio.",has:function(i){var p=S.profiles[i]||{};return !!((p.avatar||p.avatarData)&&p.bio)},svg:'<svg viewBox="0 0 24 24"><path fill="#f97316" d="M12 2a10 10 0 000 20c1.5 0 2-1 1.5-2-.6-1.2.2-2.5 1.6-2.5H18a4 4 0 004-4C22 6 17.5 2 12 2z"/><circle cx="7.5" cy="11" r="1.6" fill="#fff"/><circle cx="11" cy="7" r="1.6" fill="#ffe27a"/><circle cx="16" cy="8" r="1.6" fill="#7dd3fc"/></svg>'},
+ {id:"trend",n:"Trendsetter",d:"Decorated their profile.",how:"Save at least one profile decoration.",has:function(i){return ((S.profiles[i]||{}).decos||[]).length>0},svg:'<svg viewBox="0 0 24 24"><path fill="#ec4899" d="M12 2l2.6 6.4L21 11l-6.4 2.6L12 20l-2.6-6.4L3 11l6.4-2.6z"/><circle cx="19" cy="4.5" r="1.5" fill="#fbcfe8"/></svg>'}];
+function badgeRow(id,edit){var p=S.profiles[id]||{},hb=p.hb||[],row=h("div",{class:"bds","data-uid":id});
+  BADGES.filter(function(b){return b.has(id)&&hb.indexOf(b.id)<0}).forEach(function(b){var e=h("span",{class:"bd"+(b.id==="creator"?" crown":""),onclick:function(){badgeDlg(b,id)}},ico(b.svg),b.n);hoverTip(e,function(){return [h("b",{text:b.n}),h("div",{class:"muted",text:b.d})]});row.appendChild(e)});
+  if(edit)row.appendChild(h("span",{class:"bd",onclick:function(){badgeShelf(id)}},"＋ Manage"));return row}
+function badgeShelf(id){var m=modal([h("h3",{text:"Badges"}),h("p",{class:"muted",text:"Tap a badge to see how it's earned and to show or hide it on your profile."}),
+  h("div",{class:"lib",style:"grid-template-columns:repeat(auto-fill,minmax(96px,1fr))"},BADGES.map(function(b){var ok=b.has(id),hid=((S.profiles[id]||{}).hb||[]).indexOf(b.id)>-1;
+    return h("div",{class:"bt"+(ok?"":" lock"),onclick:function(){m.remove();badgeDlg(b,id)}},ico(b.svg),b.n,h("span",{class:"muted",text:!ok?"Locked":hid?"Hidden":"Showing"}))}))])}
+function badgeDlg(b,id){var own=id===uid,ok=b.has(id),hb=((S.profiles[id]||{}).hb||[]).slice(),hid=hb.indexOf(b.id)>-1,m,btn=null;
+  if(own&&ok)btn=h("button",{class:"btn"+(hid?"":" alt"),text:hid?"Add to my profile":"Remove from my profile",onclick:function(){
+    var n=hid?hb.filter(function(x){return x!==b.id}):hb.concat([b.id]);S.profiles[uid]=Object.assign({},S.profiles[uid]||{id:uid},{hb:n});patchProfile({hb:n});
+    var old=document.querySelector('.bds[data-uid="'+uid+'"]');if(old)old.replaceWith(badgeRow(uid,true));m.remove();toast(hid?"Badge added":"Badge removed")}});
+  m=modal([h("div",{class:"bdbig"+(ok?"":" lock"),style:"text-align:center;margin:8px 0"},ico(b.svg)),h("h3",{style:"text-align:center;margin:4px 0",text:b.n}),h("p",{style:"text-align:center",text:b.d}),
+    h("p",{class:"muted",style:"text-align:center",text:"How to earn: "+b.how}),h("p",{style:"text-align:center;font-weight:600",text:ok?"Earned ✓":"Not earned yet"}),
+    h("div",{class:"row",style:"justify-content:center"},btn,h("button",{class:"btn alt",onclick:function(){m.remove()}},"Close"))])}
+
+function shrink(src,w,hh,q,cb){var im=new Image();im.onload=function(){var c=document.createElement("canvas");c.width=w;c.height=hh;var x=c.getContext("2d"),r=Math.max(w/im.width,hh/im.height),dw=im.width*r,dh=im.height*r;x.drawImage(im,(w-dw)/2,(hh-dh)/2,dw,dh);cb(c.toDataURL("image/jpeg",q))};im.onerror=function(){toast("Couldn't read that image")};im.src=src}
+function accountDlg(){
+  if(needDb())return;
+  var acc=mineGet("account")||{},em=h("input",{type:"text",placeholder:"you@example.com",value:acc.email||""}),ta=h("textarea",{rows:"5",style:"font-size:12px"}),m;
+  function dump(){var o={v:1,profile:Object.assign({},S.profiles[uid]||{}),mine:S.mine.map(function(x){return Object.assign({},x)})};delete o.profile.id;return JSON.stringify(o)}
+  ta.value=dump();
+  function saveEmail(){var v=em.value.trim();if(v&&!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(v)){toast("That email doesn't look right");return}myput("account",{email:v,t:Date.now()}).then(function(){toast("Email saved")}).catch(function(){toast("Couldn't save")})}
+  function copy(){ta.select();try{navigator.clipboard.writeText(ta.value).then(function(){toast("Backup copied")}).catch(function(){toast("Select the text and copy it")})}catch(e){toast("Select the text and copy it")}}
+  function restore(){var o;try{o=JSON.parse(ta.value)}catch(e){toast("That isn't a valid backup");return}
+    if(!o||o.v!==1){toast("That isn't a valid backup");return}
+    var jobs=[];if(o.profile)jobs.push(put("profiles/"+uid,Object.assign({},o.profile,{since:o.profile.since||Date.now()})));
+    (o.mine||[]).forEach(function(x){if(!x||!x.id)return;var id=String(x.id).slice(0,80),d=Object.assign({},x);delete d.id;if(/^(f-|p-|fr-|account$)/.test(id))jobs.push(myput(id,d))});
+    Promise.all(jobs).then(function(){toast("Restored ✓")}).catch(function(){toast("Restore failed")})}
+  m=modal([h("h3",{text:"Account & backup"}),h("p",{class:"muted",text:"You're signed in with your Manga Shelf account. Your profile, library, reading progress and settings are saved automatically."}),
+    h("label",{text:"Contact email (private, only you can see it)"}),em,h("div",{class:"row"},h("button",{class:"btn",onclick:saveEmail},"Save email")),
+    h("p",{class:"muted",style:"font-size:12px",text:"This is kept on your account for your own records. It doesn't create a separate login."}),
+    h("label",{text:"Backup (copy this text somewhere safe, paste it back to restore)"}),ta,
+    h("div",{class:"row"},h("button",{class:"btn alt",onclick:copy},"Copy backup"),h("button",{class:"btn alt",onclick:restore},"Restore from text"))]);
+}
+/* mode + gradient background */
+var MODE="auto",BG=null,GRADS=[["Xross","#0f2a7a","#02030a"],["Aurora","#0f766e","#1e1b4b"],["Sunset","#f97316","#7e22ce"],["Sakura","#fbcfe8","#a78bfa"],["Ocean","#0ea5e9","#0b1020"],["Mint","#d1fae5","#60a5fa"],["Ember","#7f1d1d","#111827"]];
+function applyMode(m){MODE=m||"auto";var r=document.documentElement;if(MODE==="auto")r.removeAttribute("data-theme");else r.setAttribute("data-theme",MODE);try{localStorage.setItem("ms-mode",MODE)}catch(e){}}
+function hex2rgb(x){var n=parseInt(x.slice(1),16);return [n>>16&255,n>>8&255,n&255]}
+function mixc(a,b,t){return "#"+a.map(function(v,i){return ("0"+Math.round(v+(b[i]-v)*t).toString(16)).slice(-2)}).join("")}
+function applyBg(bg){var r=document.documentElement.style,vars=["--bg","--fg","--mut","--card","--line","--solid"],ok=/^#[0-9a-f]{6}$/i;
+  if(!bg||!ok.test(bg.t||"")||!ok.test(bg.b||"")){BG=null;vars.forEach(function(v){r.removeProperty(v)});document.body.style.background="";return}
+  BG=bg;var A=hex2rgb(bg.t),B=hex2rgb(bg.b),avg=A.map(function(v,i){return (v+B[i])/2}),dark=(0.299*avg[0]+0.587*avg[1]+0.114*avg[2])/255<0.55;
+  r.setProperty("--bg",bg.t);r.setProperty("--fg",dark?"#f4f4f8":"#15151a");r.setProperty("--mut",dark?"#b9bccb":"#4a4a57");
+  r.setProperty("--card",dark?"rgba(255,255,255,.1)":"rgba(255,255,255,.7)");r.setProperty("--line",dark?"rgba(255,255,255,.18)":"rgba(0,0,0,.14)");
+  r.setProperty("--solid",mixc(avg,dark?[8,8,14]:[255,255,255],0.55));document.body.style.background="linear-gradient("+bg.t+","+bg.b+") fixed"}
+function cacheProf(i,o){var c=Object.assign({},o);delete c.id;try{localStorage.setItem("ms-prof-"+i,JSON.stringify(c))}catch(e){}}
+function patchProfile(o){if(!db||!uid||!S.profiles[uid])return;var n=Object.assign({},S.profiles[uid],o,{upd:Date.now()});delete n.id;S.profiles[uid]=Object.assign({id:uid},n);cacheProf(uid,n);put("profiles/"+uid,n).catch(function(){})}
+function readPrefs(){try{var r=JSON.parse(localStorage.getItem("ms-prefs")||"null");if(r)return r}catch(e){}
+  var o={at:0};try{o.mode=localStorage.getItem("ms-mode")||"auto";var b=localStorage.getItem("ms-bg");o.bg=b?JSON.parse(b):null;o.accent=localStorage.getItem("ms-acc")||null}catch(e){}return o}
+function applyPrefs(o){if(!o)return;applyMode(o.mode||"auto");applyBg(o.bg||null);if(o.accent)applyAccent(o.accent)}
+function savePrefs(){var o={mode:MODE,bg:BG,accent:ACC,at:Date.now()};try{localStorage.setItem("ms-prefs",JSON.stringify(o))}catch(e){}patchProfile({prefs:o})}
+function syncPrefs(mp){var l=readPrefs(),r=mp&&mp.prefs;
+  if(r&&(r.at||0)>(l.at||0)){applyPrefs(r);try{localStorage.setItem("ms-prefs",JSON.stringify(r))}catch(e){}}
+  else if(mp&&l.at&&(!r||(r.at||0)<l.at))patchProfile({prefs:l})}
+function saveBg(bg){savePrefs()}
+applyPrefs(readPrefs());
+function settingsDlg(){var m;
+  function again(){m.remove();settingsDlg()}
+  var modes=h("div",{class:"seg"},[["auto","Auto"],["light","Light"],["dark","Dark"]].map(function(o){return h("button",{class:MODE===o[0]?"on":"",text:o[1],onclick:function(){applyMode(o[0]);savePrefs();again()}})}));
+  var cur=BG||{t:"#1b2a6b",b:"#05060f"},t=h("input",{type:"color",value:cur.t,style:"width:100%;height:46px;border:0;background:none;padding:0"}),b=h("input",{type:"color",value:cur.b,style:"width:100%;height:46px;border:0;background:none;padding:0"});
+  function live(){applyBg({t:t.value,b:b.value})}function done(){saveBg({t:t.value,b:b.value})}
+  t.addEventListener("input",live);b.addEventListener("input",live);t.addEventListener("change",done);b.addEventListener("change",done);
+  var pre=h("div",{class:"row"},GRADS.map(function(g){return h("div",{class:"sw",title:g[0],style:"border-radius:12px;background:linear-gradient("+g[1]+","+g[2]+")",onclick:function(){var bg={t:g[1],b:g[2]};applyBg(bg);saveBg(bg);again()}})}));
+  m=modal([h("h3",{text:"Settings"}),h("label",{text:"Appearance"}),modes,h("label",{text:"Background gradient (top to bottom)"}),pre,
+    h("div",{class:"row",style:"flex-wrap:nowrap"},h("div",{style:"flex:1"},h("div",{class:"muted",style:"font-size:12px",text:"Top"}),t),h("div",{style:"flex:1"},h("div",{class:"muted",style:"font-size:12px",text:"Bottom"}),b)),
+    h("button",{class:"btn alt",onclick:function(){applyBg(null);saveBg(null);again()}},"Reset background"),
+    h("label",{text:"Accent color"}),h("button",{class:"btn alt",onclick:function(){m.remove();themeDlg()}},"Change accent color"),
+    h("label",{text:"Account"}),h("button",{class:"btn alt",onclick:function(){m.remove();accountDlg()}},"Email & backup"),h("label",{text:"More"}),h("div",{class:"row",style:"margin:0"},h("button",{class:"btn alt",onclick:function(){m.remove();supportDlg()}},"🛟 Support"),h("button",{class:"btn alt",onclick:function(){m.remove();whatsNew()}},"✨ What's new")),
+    h("div",{class:"row"},h("button",{class:"btn",onclick:function(){m.remove()}},"Done"))]);
+}
+function whatsNew(){try{localStorage.setItem("ms-ver",VERSION)}catch(e){}
+  modal([h("h3",{text:"What's new"}),CHANGELOG.map(function(c){return h("div",{style:"margin:14px 0"},h("b",{text:"v"+c[0]+" · "+c[1]}),h("ul",{style:"margin:6px 0 0 18px;padding:0"},c[2].map(function(x){return h("li",{text:x})})))})])}
+function supportDlg(){
+  var faq=[["My upload isn't showing for friends","Friends need a Manga Shelf account. Uploaded pictures are stored in the Manga Shelf image bucket."],["My profile won't save","Sign in to Manga Shelf. The line at the bottom of your profile shows whether saving and uploads are on."],["How do I change reading direction?","Open any chapter and tap the ⚙ button."],["How do decorations work?","On your profile, add an emoji, text or image, drag it around your card, then pick an animation and size. Press Save profile."],["Are messages private?","Messages only appear to you and the person you send them to, but they aren't encrypted. Don't share passwords or secrets."]];
+  var ta=h("textarea",{rows:"3",placeholder:"Describe the problem or idea…"}),send=h("button",{class:"btn",text:"Send feedback"}),m;
+  send.onclick=function(){if(!ta.value.trim()){toast("Write a message first");return}if(needDb())return;put("support/"+uidn(),{by:uid,text:ta.value.trim().slice(0,1500),t:Date.now()}).then(function(){ta.value="";toast("Sent. Thank you!")}).catch(function(){toast("Couldn't send")})};
+  var inbox=isAdmin?h("div",{},h("div",{class:"lbl",text:"FEEDBACK INBOX"}),S.support.length?S.support.slice().sort(function(a,b){return b.t-a.t}).map(function(x){return h("div",{class:"ch",style:"cursor:default;align-items:flex-start"},h("div",{},h("b",{text:pname(x.by)+" · "+ago(x.t)}),h("div",{text:x.text})),h("button",{class:"ib",onclick:function(){db.doc("support/"+x.id).delete().then(function(){m.remove();supportDlg()})}},"✕"))}):h("div",{class:"muted",text:"No feedback yet."})):null;
+  m=modal([h("h3",{text:"Support"}),faq.map(function(f){return h("details",{},h("summary",{text:f[0]}),h("p",{class:"muted",text:f[1]}))}),h("label",{text:"Send feedback to the site owner"}),ta,h("div",{class:"row"},send),inbox]);
+}
+
+/* friends */
+function isFriend(id){return !!mineGet("fr-"+id)}
+function toggleFriend(id){if(needDb())return;var k="fr-"+id;if(isFriend(id))db.collection("data/users/"+uid).doc(k).delete().catch(function(){});else myput(k,{fid:id,t:Date.now()}).catch(function(){})}
+function friendsDlg(){
+  if(needDb())return;
+  var q=h("input",{type:"search",placeholder:"Search people by name…"}),list=h("div",{style:"margin-top:8px"}),m;
+  function draw(){list.textContent="";var s=q.value.toLowerCase();
+    var ids=Object.keys(S.profiles).filter(function(id){var n=(S.profiles[id].name||"").trim();return id!==uid&&n&&n.toLowerCase().indexOf(s)>-1}).slice(0,30);
+    if(!ids.length)list.appendChild(h("div",{class:"empty",text:"No one found. People appear here once they've set a display name."}));
+    ids.forEach(function(id){list.appendChild(h("div",{class:"urow"},h("span",{style:"display:flex;align-items:center;gap:10px;flex:1",onclick:function(){m.remove();go("u-"+id)}},avatar(id,40),nameEl(id,true)),
+      h("button",{class:"ib",title:"Message",onclick:function(){m.remove();msgsDlg(id)}},"✉"),
+      h("button",{class:isFriend(id)?"btn alt":"btn",text:isFriend(id)?"✓ Added":"+ Add",onclick:function(){toggleFriend(id)}})))})}
+  q.addEventListener("input",draw);
+  m=modal([h("h3",{text:"Find friends"}),q,list]);draw();setLive(m,draw);
+}
+/* direct messages */
+function seenMap(){try{return JSON.parse(localStorage.getItem("ms-seen-"+uid)||"{}")}catch(e){return {}}}
+function markSeen(o){var m=seenMap();m[o]=Date.now();try{localStorage.setItem("ms-seen-"+uid,JSON.stringify(m))}catch(e){}}
+function unread(){if(!uid)return 0;var m=seenMap();return S.dms.filter(function(d){return d.to===uid&&d.t>(m[d.from]||0)}).length}
+function dmsub(field,key){return db.collection("dms").where(field,"==",uid).onSnapshot(function(sn){S[key]=sn.docs.map(function(x){var d=x.data()||{};d.id=x.id;return d});S.dms=S.dmIn.concat(S.dmOut).sort(function(a,b){return a.t-b.t});route();if(refreshFn)refreshFn()},function(){})}
+function msgsDlg(withId){
+  if(needDb())return;
+  var box=h("div"),m=modal(box),cur=withId||null,draft="";
+  function view(){
+    var had=box.contains(document.activeElement)&&document.activeElement.tagName==="TEXTAREA";box.textContent="";
+    var cv={};S.dms.forEach(function(d){var o=d.from===uid?d.to:d.from;(cv[o]=cv[o]||[]).push(d)});
+    if(!cur){
+      box.appendChild(h("h3",{text:"Messages"}));
+      var ids=Object.keys(cv).sort(function(a,b){return cv[b][cv[b].length-1].t-cv[a][cv[a].length-1].t}),sn=seenMap();
+      if(!ids.length)box.appendChild(h("div",{class:"empty",text:"No messages yet."}));
+      ids.forEach(function(id){var arr=cv[id],last=arr[arr.length-1],un=arr.filter(function(d){return d.to===uid&&d.t>(sn[id]||0)}).length;
+        box.appendChild(h("div",{class:"urow",onclick:function(){cur=id;markSeen(id);view()}},avatar(id,42),h("div",{style:"flex:1;min-width:0"},nameEl(id,true),h("div",{class:"muted",style:"font-size:13px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis",text:(last.from===uid?"You: ":"")+last.text})),un?h("span",{class:"dot",text:String(un)}):null))});
+      box.appendChild(h("div",{class:"row"},h("button",{class:"btn",onclick:function(){m.remove();friendsDlg()}},"＋ New message")));
+      box.appendChild(h("p",{class:"muted",style:"font-size:12px",text:"Messages only show to you and the recipient, but they aren't encrypted. Don't send passwords or secrets."}));
+    }else{
+      markSeen(cur);
+      var send=function(){var tx=draft.trim();if(!tx)return;draft="";put("dms/"+uidn(),{from:uid,to:cur,text:tx.slice(0,1000),t:Date.now()}).catch(function(){toast("Couldn't send")});ta.value=""};
+      var ta=h("textarea",{rows:"2",placeholder:"Message…",style:"flex:1"});ta.value=draft;ta.addEventListener("input",function(){draft=ta.value});
+      ta.addEventListener("keydown",function(e){if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();send()}});
+      box.appendChild(h("div",{class:"by",style:"gap:10px"},h("button",{class:"ib",onclick:function(){cur=null;view()}},"‹"),avatar(cur,34),nameEl(cur,true)));
+      var ms=h("div",{class:"msgs"});(cv[cur]||[]).forEach(function(d){ms.appendChild(h("div",{class:"mb"+(d.from===uid?" me":""),text:d.text}))});
+      if(!(cv[cur]||[]).length)ms.appendChild(h("div",{class:"empty",text:"Say hi 👋"}));
+      box.appendChild(ms);box.appendChild(h("div",{class:"row",style:"align-items:flex-end;flex-wrap:nowrap"},ta,h("button",{class:"btn",onclick:send},"Send")));
+      ms.scrollTop=ms.scrollHeight;if(had||!draft)ta.focus();
+    }
+  }
+  view();setLive(box,view);
+}
+/* member pages */
+function userPage(id){
+  if(id===uid){go("profile");return}
+  var m=shell(),p=S.profiles[id];
+  if(!p){m.appendChild(h("div",{class:"empty",text:S.loaded?"User not found.":"Loading…"}));return}
+  var c1=p.n1||ACC,c2=p.n2||"#ec4899";
+  var box=h("div",{style:"border-radius:24px;padding:14px;background:linear-gradient(160deg,"+c1+"40,"+c2+"1f 50%,transparent)"});
+  box.appendChild(profileCard(id,false));
+  box.appendChild(h("div",{class:"row",style:"justify-content:center"},h("button",{class:"btn"+(isFriend(id)?" alt":""),text:isFriend(id)?"✓ Friends":"+ Add friend",onclick:function(){toggleFriend(id)}}),h("button",{class:"btn alt",onclick:function(){msgsDlg(id)}},"✉ Message")));
+  m.appendChild(box);
+  var mine=S.series.filter(function(x){return x.by===id});
+  m.appendChild(h("div",{class:"sh"},h("h3",{text:"Uploads by "+pname(id)})));
+  m.appendChild(mine.length?h("div",{class:"grid"},mine.map(function(x){return card(x)})):h("div",{class:"muted",text:"Nothing uploaded yet."}));
+}
+
+/* ---------- reader ---------- */
+var rd=null,units=[],u=0,pages=[],chap=null,startEnd=false,resumeAt=null;
+function closeReader(){if(rd){rd.remove();rd=null}inReader=false;readerChap=null;document.removeEventListener("keydown",key)}
+function buildUnits(){var n=pages.length;units=[];
+  if(cfg.mode==="double"){var i=0;if(cfg.cover&&n>0){units.push([0]);i=1}for(;i<n;i+=2)units.push(i+1<n?[i,i+1]:[i])}
+  else for(var j=0;j<n;j++)units.push([j])}
+function key(e){
+  if(document.querySelector(".modal"))return;var tg=e.target&&e.target.tagName;if(tg==="INPUT"||tg==="TEXTAREA")return;
+  if(e.key==="ArrowRight")step(cfg.dir==="rtl"?-1:1);
+  else if(e.key==="ArrowLeft")step(cfg.dir==="rtl"?1:-1);
+  else if((e.key===" "||e.key==="PageDown")&&cfg.mode!=="scroll"){e.preventDefault();step(1)}
+  else if(e.key==="PageUp"&&cfg.mode!=="scroll"){e.preventDefault();step(-1)}
+  else if(e.key==="Escape"&&chap)go("s-"+chap.sid);
+  else if(e.key==="f"||e.key==="F"){try{if(document.fullscreenElement)document.exitFullscreen();else if(rd&&rd.requestFullscreen)rd.requestFullscreen().catch(function(){})}catch(x){}}
+}
+function openReader(id){
+  var c=S.chapters.filter(function(x){return x.id===id})[0];
+  if(!c){shell().appendChild(h("div",{class:"empty",text:S.loaded?"Chapter not found.":"Loading…"}));return}
+  closeReader();inReader=true;readerChap=id;chap=c;pages=c.pages.map(blob);
+  buildUnits();u=startEnd?units.length-1:0;startEnd=false;
+  if(resumeAt!=null){var pi=resumeAt;resumeAt=null;for(var q=0;q<units.length;q++)if(units[q].indexOf(pi)>-1){u=q;break}}
+  if(db&&uid&&!S.reads.some(function(r){return r.id===id+"_"+uid}))put("reads/"+id+"_"+uid,{sid:c.sid,cid:id,uid:uid,t:Date.now()}).catch(function(){});
+  rd=h("div",{id:"rd"});document.body.appendChild(rd);document.addEventListener("keydown",key);draw();saveProg();
+}
+function sib(d){var l=chOf(chap.sid),i=l.findIndex(function(x){return x.id===chap.id});return l[i+d]}
+function step(d){
+  if(cfg.mode==="scroll")return;
+  var nu=u+d;
+  if(nu>=units.length){var nx=sib(1);if(nx)go("r-"+nx.id);else toast("Last chapter");return}
+  if(nu<0){var pv=sib(-1);if(pv){startEnd=true;go("r-"+pv.id)}else toast("First page");return}
+  u=nu;draw();saveProg();
+}
+function tapZone(side){var d=cfg.dir==="rtl"?-side:side;if(cfg.swap)d=-d;step(d)}
+function draw(){
+  var hid=rd.classList.contains("hide");rd.textContent="";rd.className=(cfg.fit==="width"?"fw ":"")+(cfg.mode==="double"?"dbl ":"")+(hid?"hide":"");
+  var top=h("div",{class:"bar top"},h("button",{onclick:function(){go("s-"+chap.sid)}},"‹ Back"),h("div",{class:"ttl",text:"Ch. "+chap.n+(chap.title?" · "+chap.title:"")}),h("button",{onclick:settings},"⚙"));
+  var lab=h("span"),bot=h("div",{class:"bar bot"},h("button",{onclick:function(){tapZone(-1)}},"◀"),lab,h("button",{onclick:function(){tapZone(1)}},"▶"));
+  if(cfg.mode==="scroll"){
+    var sc=h("div",{class:"scr",onclick:function(){rd.classList.toggle("hide")}});
+    pages.forEach(function(p){sc.appendChild(h("img",{src:p,loading:"lazy",alt:""}))});
+    var nx=sib(1);sc.appendChild(h("div",{class:"row",style:"justify-content:center;padding:20px"},nx?h("button",{class:"btn",onclick:function(e){e.stopPropagation();go("r-"+nx.id)}},"Next chapter ›"):h("span",{class:"muted",text:"End of available chapters"})));
+    rd.appendChild(sc);bot.style.display="none";
+  }else{
+    var pg=h("div",{class:"pg"+(cfg.dir==="rtl"?" rtl":"")});
+    units[u].forEach(function(i){pg.appendChild(h("img",{src:pages[i],alt:""}))});rd.appendChild(pg);
+    rd.appendChild(h("div",{class:"tz",style:"left:0;width:35%",onclick:function(){tapZone(-1)}}));
+    rd.appendChild(h("div",{class:"tz",style:"right:0;width:35%",onclick:function(){tapZone(1)}}));
+    rd.appendChild(h("div",{class:"tz",style:"left:35%;width:30%",onclick:function(){rd.classList.toggle("hide")}}));
+    lab.textContent=units[u].map(function(i){return i+1}).join("-")+" / "+pages.length;
+    [u+1,u+2].forEach(function(k){if(units[k])units[k].forEach(function(i){(new Image()).src=pages[i]})});
+  }
+  rd.appendChild(top);rd.appendChild(bot);
+}
+function settings(){
+  var m;
+  function seg(label,k,opts){var w=h("div",{class:"seg"});
+    opts.forEach(function(o){w.appendChild(h("button",{class:cfg[k]===o[0]?"on":"",text:o[1],onclick:function(){
+      cfg[k]=o[0];save();if(k==="mode"||k==="cover"){buildUnits();u=Math.min(u,units.length-1)}m.remove();draw();settings()}}))});
+    return [h("label",{text:label}),w]}
+  m=modal([h("h3",{text:"Reader settings"}),
+    seg("Page layout","mode",[["single","Single"],["double","Double spread"],["scroll","Vertical scroll"]]),
+    seg("Reading direction","dir",[["rtl","Right to left"],["ltr","Left to right"]]),
+    seg("Tap zones","swap",[[false,"Normal"],[true,"Swapped"]]),
+    seg("Fit","fit",[["page","Fit page"],["width","Fit width"]]),
+    seg("Spreads: first page","cover",[[true,"Alone"],[false,"Paired"]]),
+    h("div",{class:"row"},h("button",{class:"btn",onclick:function(){m.remove()}},"Done"))]);
+  m.style.zIndex=60;
+}
+document.addEventListener("keydown",function(e){if(e.key==="Escape"){var ms=document.querySelectorAll(".modal");if(ms.length){ms[ms.length-1].remove();e.stopImmediatePropagation()}}});
+setTimeout(function(){var seen="";try{seen=localStorage.getItem("ms-ver")||""}catch(e){}
+  if(seen!==VERSION){var t=h("div",{class:"toast",style:"cursor:pointer",onclick:function(){t.remove();whatsNew()}},"✨ What's new in v"+VERSION+" — tap to see");document.body.appendChild(t);setTimeout(function(){t.remove()},8000)}},2500);
+start();
+})();
+</script>
+</body></html>
